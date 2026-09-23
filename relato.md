@@ -1,14 +1,14 @@
-# Relatório sobre implementação de comunicação entre tarefas em FIXME
+# Relatório sobre implementação de comunicação entre tarefas em Rust
 
 ## Introdução
 
 Este relato faz parte do processo avaliativo da disciplina de sistemas operacionas no curso superior em análise e desenvolvimento de sistemas, ofertado na Diretoria acadêmica de gestão e tecnologia da informação no campus natal-central do instituto federal de educação, ciência e tecnologia do rio grande do norte.
 
-Tem como objetivo principal relatar as implementações de comunicação entre tarefas na linguagem FIXME.
+Tem como objetivo principal relatar as implementações de comunicação entre tarefas na linguagem Rust.
 
-O grupo de trabalho foi formado por FIXME.
+O grupo de trabalho foi formado por Julia Rafaelly Siqueira de Lima, Lídia Rebeka da Silva Fernandes e Lyonara da Silva Carmêlo.
 
-## Comunicação entre tarefas em FIXME
+## Comunicação entre tarefas em Rust
 
 ### Informações gerais
 
