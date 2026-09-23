@@ -1,0 +1,22 @@
+[package]
+name = "comunicacao-entre-tarefas"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8"
+
+[lib]
+path = "lib.rs"
+
+[[bin]]
+name = "sequencial"
+path = "bin/sequencial.rs"
+
+[[bin]]
+name = "produtor-consumidor"
+path = "bin/produtor_consumidor.rs"
+
+[[bin]]
+name = "exemplo-main"
+path = "bin/exemplo_main.rs"

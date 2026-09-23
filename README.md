@@ -16,6 +16,17 @@
 4. Na linguagem escolhida, implementar código correspondente ao python deste respositório (**use o docker para executar os códigos**);
 5. Modificar o arquivo `relato.md` relatando a experiência da implementação.
 
+## Implementação em Rust
+
+Os três programas Python foram reescritos como executáveis Cargo:
+
+- `sequencial`: gera os dados e calcula a soma na mesma thread;
+- `produtor-consumidor`: produtor e consumidor executam em threads separadas e trocam o vetor por um canal;
+- `exemplo-main`: chama a função de geração compartilhada e imprime `teste`.
+
+Para executar localmente, use `cargo run --bin sequencial`, `cargo run --bin produtor-consumidor` ou `cargo run --bin exemplo-main`.
+Para executar com Docker, construa a imagem com `docker build -t atividade-rust .` e escolha o programa ao iniciar o container, por exemplo: `docker run --rm atividade-rust produtor-consumidor`.
+
 ---
 ## Grupos (min. 2 e máx. 3)
 | Linguagem  | Time      | Repositório |

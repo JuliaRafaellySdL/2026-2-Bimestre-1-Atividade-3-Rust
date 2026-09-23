@@ -12,58 +12,59 @@ O grupo de trabalho foi formado por Julia Rafaelly Siqueira de Lima, Lídia Rebe
 
 ### Informações gerais
 
-FIXME
+#### OBJETIVO DA COMUNICAÇÃO ENTRE TAREFAS:
 > qual o objetivo de comunicação entre tarefas? 
 
-FIXME
+#### SOBRE O DOCKER:
 > explicar porque usar docker nesse trabalho.
 > qual a configuração do docker?
 
 ### Comunicação entre tarefas com linhas de execução no mesmo processo
 
-FIXME
+#### CÓDIGO
 > texto explicando o código
+<br>
 > mostrar o código completo
 
-FIXME
+#### EXECUÇÃO
 > explicar como foi executado
 > mostrar as saídas do terminal
 > mostrar as saídas do terminal
 
-FIXME
+##### PROBLEMAS
 > se houve problema na execução, enumerar os problemas e suas respectivas soluções
 
 ### Comunicação entre tarefas em processos diferentes no mesmo computador
 
-FIXME
+#### CÓDIGO
 > texto explicando o código
 > mostrar o código completo
 
-FIXME
+#### EXECUÇÃO
 > explicar como foi executado
 > mostrar as saídas do terminal
 > mostrar as saídas do terminal
 
-FIXME
+#### PROBLEMAS
 > se houve problema na execução, enumerar os problemas e suas respectivas soluções
 
 ### Comunicação entre tarefas em processos diferentes em computadores diferentes
 
-FIXME
+#### CÓDIGO
 > texto explicando o código
 > mostrar o código completo
 
-FIXME
+#### EXECUÇÃO
 > explicar como foi executado
 > mostrar as saídas do terminal
 > mostrar as saídas do terminal
 
-FIXME
+#### PROBLEMAS
 > se houve problema na execução, enumerar os problemas e suas respectivas soluções
 
 ## Considerações finais
 
-FIXME
+#### CONCLUSÃO
 > conseguiu implementar tudo e executar?
 > qual foi o aprendizado nesse trabalho?
 > alguma recomendação para próximos alunos?
