@@ -29,6 +29,6 @@
 | Java       | Guilherme da Silva Cruz<br>José Vine Nunes Martins Araújo<br>Maria Clara Batista Viana Silva   | FIXME |
 | Kotlin     | Ana Letícia Vidal de Oliveira<br>Iago Vinícius Souza de Sales<br>Valentine Varela              | FIXME |
 | Lua        | Andre Medeiros Silva<br>Denju Gabriel da Silva Lira<br>Lucas Gabryel Silva de Holanda          | FIXME |
-| Rust       | Julia Rafaelly Siqueira de Lima<br>Lidia Rebeka da Silva Fernandes<br>Lyonara da Silva Camelo  | FIXME |
+| Rust       | [Julia Rafaelly Siqueira de Lima](https://github.com/JuliaRafaellySdL/)<br>[Lidia Rebeka da Silva Fernandes](https://github.com/rebekafernandes-cyber/)<br>[Lyonara da Silva Camelo](https://github.com/Lyonara/)  | [2026-2-Bimestre-1-Atividade-3-Rust](https://github.com/JuliaRafaellySdL/2026-2-Bimestre-1-Atividade-3-Rust) |
 | Typescript | Arkângelo Maycon Ashley da Silva Barbosa<br>Jadson de Medeiros Souza<br>Luiz Rodrigues da Silveira Neto | FIXME |
 
