@@ -13,11 +13,27 @@ O grupo de trabalho foi formado por Julia Rafaelly Siqueira de Lima, Lídia Rebe
 ### Informações gerais
 
 #### OBJETIVO DA COMUNICAÇÃO ENTRE TAREFAS:
-> qual o objetivo de comunicação entre tarefas? 
+Permitir que partes de um programa trabalhem juntas
+<br>
+> Troca de dados; <br>
+> Coordenação da execução; <br>
+> Não concorrente.
+<br>
+Em Rust, essa troca acontece de maneira segura, sem as duas threads acessarem a mesma variável ao mesmo tempo de forma direta.
 
 #### SOBRE O DOCKER:
-> explicar porque usar docker nesse trabalho.
-> qual a configuração do docker?
+O uso do docker se dá por praticidade, visto que não é necessária a instalação da linguagem Rust em diferentes máquinas. A configuração docker usada foi:
+<br>
+```dockerfile
+FROM rust:1.85
+WORKDIR /app
+COPY Cargo.toml ./
+COPY lib.rs ./lib.rs
+COPY bin ./bin
+RUN cargo build --release
+ENTRYPOINT ["cargo", "run", "--release", "--bin"]
+```
+<br>
 
 ### Comunicação entre tarefas com linhas de execução no mesmo processo
 
