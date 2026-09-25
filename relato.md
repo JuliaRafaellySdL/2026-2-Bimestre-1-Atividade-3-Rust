@@ -15,10 +15,11 @@ O grupo de trabalho foi formado por Julia Rafaelly Siqueira de Lima, Lídia Rebe
 #### OBJETIVO DA COMUNICAÇÃO ENTRE TAREFAS:
 Permitir que partes de um programa trabalhem juntas
 <br>
-> Troca de dados; <br>
-> Coordenação da execução; <br>
-> Não concorrente.
+> * Troca de dados; <br>
+> * Coordenação da execução; <br>
+> * Não concorrente.
 <br>
+
 Em Rust, essa troca acontece de maneira segura, sem as duas threads acessarem a mesma variável ao mesmo tempo de forma direta.
 
 #### SOBRE O DOCKER:
@@ -38,9 +39,31 @@ ENTRYPOINT ["cargo", "run", "--release", "--bin"]
 ### Comunicação entre tarefas com linhas de execução no mesmo processo
 
 #### CÓDIGO
-> texto explicando o código
+O código cria duas threads capazes de se comunicar por meio de um __canal (channel)__
 <br>
-> mostrar o código completo
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    // Cria um canal
+    let (tx, rx) = mpsc::channel();
+
+    // Cria uma nova thread
+    thread::spawn(move || {
+        let mensagem = "Olá da outra thread!";
+
+        // Envia a mensagem
+        tx.send(mensagem).unwrap();
+    });
+
+    // Recebe a mensagem
+    let mensagem_recebida = rx.recv().unwrap();
+
+    println!("Mensagem recebida: {}", mensagem_recebida);
+}
+```
 
 #### EXECUÇÃO
 > explicar como foi executado
@@ -54,7 +77,33 @@ ENTRYPOINT ["cargo", "run", "--release", "--bin"]
 
 #### CÓDIGO
 > texto explicando o código
-> mostrar o código completo
+
+__Primeiro programa:__ Enviar mensagem
+```rust
+use std::fs::File;
+use std::io::Write;
+
+fn main() {
+    let mut arquivo = File::create("mensagem.txt").unwrap();
+
+    arquivo
+        .write_all(b"Olá do outro processo!")
+        .unwrap();
+
+    println!("Mensagem enviada!");
+}
+```
+
+__Segundo programa:__ Receber mensagem
+```rust
+use std::fs;
+
+fn main() {
+    let mensagem = fs::read_to_string("mensagem.txt").unwrap();
+
+    println!("Mensagem recebida: {}", mensagem);
+}
+```
 
 #### EXECUÇÃO
 > explicar como foi executado
@@ -67,8 +116,46 @@ ENTRYPOINT ["cargo", "run", "--release", "--bin"]
 ### Comunicação entre tarefas em processos diferentes em computadores diferentes
 
 #### CÓDIGO
-> texto explicando o código
-> mostrar o código completo
+__Servidor:__
+```rust
+use std::io::Read;
+use std::net::TcpListener;
+
+fn main() {
+    // Abre a porta 8080
+    let servidor = TcpListener::bind("0.0.0.0:8080").unwrap();
+
+    println!("Servidor esperando conexão...");
+
+    // Espera um computador se conectar
+    let (mut conexao, _) = servidor.accept().unwrap();
+
+    let mut mensagem = String::new();
+
+    // Recebe a mensagem
+    conexao.read_to_string(&mut mensagem).unwrap();
+
+    println!("Mensagem recebida: {}", mensagem);
+}
+```
+__Cliente:__
+```rust
+use std::io::Write;
+use std::net::TcpStream;
+
+fn main() {
+    // Conecta ao servidor
+    let mut conexao = TcpStream::connect("192.168.0.10:8080").unwrap();
+
+    let mensagem = "Olá do outro computador!";
+
+    // Envia a mensagem
+    conexao.write_all(mensagem.as_bytes()).unwrap();
+
+    println!("Mensagem enviada!");
+}
+```
+
 
 #### EXECUÇÃO
 > explicar como foi executado
