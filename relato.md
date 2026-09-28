@@ -273,4 +273,4 @@ Conseguimos implementar e executar tudo com sucesso, adquirindo ensinamentos pri
 
 <br>
 
-Obs: Vídeos das execuções --> ![Vídeos](https://www.youtube.com/watch?v=AXVFdxmfjFw&list=PLLiwkXM5Re5I&index=1)
+Obs: Vídeos das execuções --> [Vídeos](https://www.youtube.com/watch?v=AXVFdxmfjFw&list=PLLiwkXM5Re5I&index=1)
