@@ -39,7 +39,7 @@ ENTRYPOINT ["cargo", "run", "--release", "--bin"]
 ### Comunicação entre tarefas com linhas de execução no mesmo processo
 
 #### CÓDIGO
-O código cria duas threads capazes de se comunicar por meio de um __canal (channel)__
+O código cria duas threads capazes de se comunicar por meio de um __canal (channel)__, uma thread é responsável por __enviar__ a mensagem e a outra por __receber__
 <br>
 
 ```rust
@@ -48,35 +48,51 @@ use std::thread;
 
 fn main() {
     // Cria um canal
-    let (tx, rx) = mpsc::channel();
+    let (tx, rx) = mpsc::channel(); //tx -> transmissor rx -> receptor
 
     // Cria uma nova thread
-    thread::spawn(move || {
+    thread::spawn(move || { //manda o valor de tx
         let mensagem = "Olá da outra thread!";
 
         // Envia a mensagem
-        tx.send(mensagem).unwrap();
+        tx.send(mensagem).unwrap(); //envia a mensagem pelo canal
+        //unwrap -> encerra o programa com erro caso o envio falhe
     });
 
     // Recebe a mensagem
     let mensagem_recebida = rx.recv().unwrap();
+    //recv -> espera a mensagem chegar
 
     println!("Mensagem recebida: {}", mensagem_recebida);
 }
 ```
+> Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex01.rs"
 
 #### EXECUÇÃO
-> explicar como foi executado
-> mostrar as saídas do terminal
-> mostrar as saídas do terminal
+O primeiro passo sempre é adicionar o arquivo às configurações do Cargo.toml
+
+__Comandos:__
+>docker build -t atividade-rust .
+
+Ele cria/recria a imagem do programa
+
+>docker run --rm atividade-rust ex01
+
+Ele executa o código presente na imagem
+
+__Saída:__
+> Mensagem recebida: Olá da outra thread!
+
+![Saída do programa](imagens/ex01_saida.png)
 
 ##### PROBLEMAS
-> se houve problema na execução, enumerar os problemas e suas respectivas soluções
+__1. Docker fechado:__
+Durante a execução do código o docker precisa estar aberto
 
 ### Comunicação entre tarefas em processos diferentes no mesmo computador
 
 #### CÓDIGO
-> texto explicando o código
+Dividido em dois programas, onde o primeiro envia uma mensagem para o segundo
 
 __Primeiro programa:__ Enviar mensagem
 ```rust
@@ -84,60 +100,104 @@ use std::fs::File;
 use std::io::Write;
 
 fn main() {
-    let mut arquivo = File::create("mensagem.txt").unwrap();
+    let mut arquivo = File::create("mensagem.txt").unwrap(); //cria um arquivo txt
 
     arquivo
-        .write_all(b"Olá do outro processo!")
+        .write_all("Olá do outro processo!".as_bytes()) //as_bytes -> converte o texto em bytes UTF-8
         .unwrap();
 
     println!("Mensagem enviada!");
 }
 ```
+> Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex02_primeiro.rs"
 
 __Segundo programa:__ Receber mensagem
 ```rust
 use std::fs;
 
 fn main() {
-    let mensagem = fs::read_to_string("mensagem.txt").unwrap();
+    let mensagem = fs::read_to_string("mensagem.txt").unwrap(); //lê o conteúdo
 
-    println!("Mensagem recebida: {}", mensagem);
+    println!("Mensagem recebida: {}", mensagem); //exibe a mensagem recebida
 }
 ```
+> Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex02_segundo.rs"
 
 #### EXECUÇÃO
-> explicar como foi executado
-> mostrar as saídas do terminal
-> mostrar as saídas do terminal
+O primeiro passo sempre é adicionar o arquivo às configurações do Cargo.toml
+
+__Comandos:__
+>docker build -t atividade-rust .
+
+Ele cria/recria a imagem do programa
+
+>docker run --rm --entrypoint sh atividade-rust -c "cargo run --release --bin ex02-primeiro && cargo run --release --bin ex02-segundo"
+
+Ele executa ambos os programas
+
+__Saídas:__
+
+__1.Primeiro:__
+
+>Mensagem enviada!
+
+![Primeira saída](imagens/ex02_primeiro_saida.png)
+
+__2.Segundo:__
+
+>Mensagem recebida: Olá do outro processo!
+
+![Segunda saída](imagens/ex02_segundo_saida.png)
 
 #### PROBLEMAS
-> se houve problema na execução, enumerar os problemas e suas respectivas soluções
+__1. Sequência de bytes inválida:__
+
+O código antigo:
+
+```rust
+arquivo.write_all(b"Olá do outro processo!").unwrap();
+```
+O prefixo b cria uma sequência de bytes em ASCII, que não aceita o caractere _á_
+
+<br>
+
+A solução foi substituir essa parte do código por:
+
+```rust
+arquivo.write_all("Olá do outro processo!".as_bytes()).unwrap();
+```
+Que converte o texto em bytes UTF-8, que aceita esse caractere.
 
 ### Comunicação entre tarefas em processos diferentes em computadores diferentes
 
 #### CÓDIGO
+
+
 __Servidor:__
 ```rust
-use std::io::Read;
-use std::net::TcpListener;
+use std::io::{BufRead, BufReader};
+use std::net::TcpListener; //importa as conexões TCP
 
 fn main() {
     // Abre a porta 8080
-    let servidor = TcpListener::bind("0.0.0.0:8080").unwrap();
+    let servidor = TcpListener::bind("0.0.0.0:8080").unwrap(); //abre uma porta para conexões recebidas
 
     println!("Servidor esperando conexão...");
 
     // Espera um computador se conectar
-    let (mut conexao, _) = servidor.accept().unwrap();
+    let (conexao, _) = servidor.accept().unwrap(); //espera o cliente conectar
+    let mut leitor = BufReader::new(conexao); 
 
-    let mut mensagem = String::new();
+    let mut mensagem = String::new(); //cria uma string para guardar os dados recebidos
 
     // Recebe a mensagem
-    conexao.read_to_string(&mut mensagem).unwrap();
+    leitor.read_line(&mut mensagem).unwrap();
 
-    println!("Mensagem recebida: {}", mensagem);
+    println!("Mensagem recebida: {}", mensagem.trim_end());
 }
 ```
+> Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex03_servidor.rs"
+
 __Cliente:__
 ```rust
 use std::io::Write;
@@ -145,29 +205,72 @@ use std::net::TcpStream;
 
 fn main() {
     // Conecta ao servidor
-    let mut conexao = TcpStream::connect("192.168.0.10:8080").unwrap();
+    let mut conexao = TcpStream::connect("host.docker.internal:8080").unwrap(); //permite que o teste possa ser feito por um só computador
 
-    let mensagem = "Olá do outro computador!";
+    let mensagem = "Olá do outro computador!\n";
 
     // Envia a mensagem
     conexao.write_all(mensagem.as_bytes()).unwrap();
+    //converte o texto em bytes e os envia pelo TCP
 
     println!("Mensagem enviada!");
 }
 ```
-
+> Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex03_cliente.rs"
 
 #### EXECUÇÃO
-> explicar como foi executado
-> mostrar as saídas do terminal
-> mostrar as saídas do terminal
+__Comandos:__
+>docker build -t atividade-rust .
+
+Ele cria/recria a imagem do programa
+
+>docker run --rm -p 8080:8080 atividade-rust ex03-servidor
+
+Ele executa o servidor
+
+>docker run --rm atividade-rust ex03-cliente
+
+Ele executa o cliente
+
+__Saídas:__
+
+__1.Servidor:__
+
+>Servidor esperando conexão...
+
+>Mensagem recebida: Olá do outro computador!
+
+__2.Cliente:__
+
+>Mensagem enviada!
+
+![Saída](imagens/ex03_cliente-servidor.png)
 
 #### PROBLEMAS
-> se houve problema na execução, enumerar os problemas e suas respectivas soluções
+__1. Resposta nunca enviada__
+
+O código antigo usava:
+
+```rust
+read_to_string
+```
+
+Ou seja, o servidor só terminava a leitura quando a conexão era encerrada. Durante o teste, o cliente mandava a mensagem mas ela nunca retornava para o servidor
+
+<br>
+
+A solução foi substituir essa parte do código por:
+
+```rust
+read_line
+```
+Que envia a resposta assim que encontra uma quebra de linha, tornando o programa funcional.
 
 ## Considerações finais
 
 #### CONCLUSÃO
-> conseguiu implementar tudo e executar?
-> qual foi o aprendizado nesse trabalho?
-> alguma recomendação para próximos alunos?
+Conseguimos implementar e executar tudo com sucesso, adquirindo ensinamentos principalmente pelo uso de docker e da funcionalidade do código em rust.
+
+<br>
+
+Obs: Vídeos das execuções na pasta vídeos

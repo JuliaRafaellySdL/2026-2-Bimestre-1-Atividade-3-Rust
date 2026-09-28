@@ -1,4 +1,4 @@
-se std::sync::mpsc;
+use std::sync::mpsc;
 use std::thread;
 
 fn main() {

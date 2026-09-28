@@ -20,3 +20,23 @@ path = "bin/produtor_consumidor.rs"
 [[bin]]
 name = "exemplo-main"
 path = "bin/exemplo_main.rs"
+
+[[bin]]
+name = "ex01"
+path = "bin/ex01.rs"
+
+[[bin]]
+name = "ex02-primeiro"
+path = "bin/ex02_primeiro.rs"
+
+[[bin]]
+name = "ex02-segundo"
+path = "bin/ex02_segundo.rs"
+
+[[bin]]
+name = "ex03-cliente"
+path = "bin/ex03_cliente.rs"
+
+[[bin]]
+name = "ex03-servidor"
+path = "bin/ex03_servidor.rs"
