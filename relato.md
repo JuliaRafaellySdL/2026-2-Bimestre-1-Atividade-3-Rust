@@ -70,6 +70,7 @@ fn main() {
 
 #### EXECUÇÃO
 O primeiro passo sempre é adicionar o arquivo às configurações do Cargo.toml
+Os comandos abaixo devem ser executados na pasta `src/rust`.
 
 __Comandos:__
 >docker build -t atividade-rust .
@@ -94,101 +95,76 @@ Durante a execução do código o docker precisa estar aberto
 #### CÓDIGO
 Dividido em dois programas, onde o primeiro envia uma mensagem para o segundo
 
-__Primeiro programa:__ Enviar mensagem
+__Primeiro programa:__ Enviar mensagem pelo pipe
 ```rust
-use std::fs::File;
-use std::io::Write;
-
 fn main() {
-    let mut arquivo = File::create("mensagem.txt").unwrap(); //cria um arquivo txt
-
-    arquivo
-        .write_all("Olá do outro processo!".as_bytes()) //as_bytes -> converte o texto em bytes UTF-8
-        .unwrap();
-
-    println!("Mensagem enviada!");
+    println!("Olá mundo");
 }
 ```
 > Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex02_primeiro.rs"
 
-__Segundo programa:__ Receber mensagem
+__Segundo programa:__ Receber mensagem do pipe
 ```rust
-use std::fs;
+use std::io::{self, BufRead};
 
 fn main() {
-    let mensagem = fs::read_to_string("mensagem.txt").unwrap(); //lê o conteúdo
+    let stdin = io::stdin();
+    let mut mensagem = String::new();
 
-    println!("Mensagem recebida: {}", mensagem); //exibe a mensagem recebida
+    // Lê uma linha enviada pelo primeiro processo pelo pipe.
+    stdin
+        .lock()
+        .read_line(&mut mensagem)
+        .expect("não foi possível receber a mensagem pelo pipe");
+
+    println!("entrada: {}", mensagem.trim_end());
 }
 ```
 > Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex02_segundo.rs"
 
 #### EXECUÇÃO
-O primeiro passo sempre é adicionar o arquivo às configurações do Cargo.toml
+O primeiro passo sempre é adicionar os arquivos às configurações do `Cargo.toml`.
+Os comandos abaixo devem ser executados na pasta `src/rust`.
 
 __Comandos:__
 >docker build -t atividade-rust .
 
 Ele cria/recria a imagem do programa
 
->docker run --rm --entrypoint sh atividade-rust -c "cargo run --release --bin ex02-primeiro && cargo run --release --bin ex02-segundo"
+>docker run --rm atividade-rust ex02-primeiro | docker run --rm -i atividade-rust ex02-segundo
 
-Ele executa ambos os programas
+O pipe (`|`) conecta a saída do primeiro processo à entrada do segundo. A opção `-i` mantém a entrada padrão do segundo container conectada.
 
-__Saídas:__
+__Saída:__
 
-__1.Primeiro:__
-
->Mensagem enviada!
-
-![Primeira saída](imagens/ex02_primeiro_saida.png)
-
-__2.Segundo:__
-
->Mensagem recebida: Olá do outro processo!
-
-![Segunda saída](imagens/ex02_segundo_saida.png)
+>entrada: Olá mundo
 
 #### PROBLEMAS
-__1. Sequência de bytes inválida:__
+__1. Entrada padrão do container receptor:__
 
-O código antigo:
-
-```rust
-arquivo.write_all(b"Olá do outro processo!").unwrap();
-```
-O prefixo b cria uma sequência de bytes em ASCII, que não aceita o caractere _á_
-
-<br>
-
-A solução foi substituir essa parte do código por:
-
-```rust
-arquivo.write_all("Olá do outro processo!".as_bytes()).unwrap();
-```
-Que converte o texto em bytes UTF-8, que aceita esse caractere.
+O segundo container precisa receber a saída do primeiro pela entrada padrão. A opção `-i` no comando `docker run` mantém essa entrada conectada para que o programa consiga ler a mensagem do pipe. O consumidor lê apenas a primeira linha, assim como `input()` no exemplo Python.
 
 ### Comunicação entre tarefas em processos diferentes em computadores diferentes
 
 #### CÓDIGO
 
 
-__Servidor:__
+__Servidor (socket TCP):__
 ```rust
 use std::io::{BufRead, BufReader};
-use std::net::TcpListener; //importa as conexões TCP
+use std::net::TcpListener; // importa o socket TCP que aguarda conexões
 
 fn main() {
     // Abre a porta 8080
-    let servidor = TcpListener::bind("0.0.0.0:8080").unwrap(); //abre uma porta para conexões recebidas
+    let servidor = TcpListener::bind("0.0.0.0:8080").unwrap(); // abre uma porta para conexões recebidas
 
     println!("Servidor esperando conexão...");
 
     // Espera um computador se conectar
-    let (conexao, _) = servidor.accept().unwrap(); //espera o cliente conectar
-    let mut leitor = BufReader::new(conexao); 
+    let (conexao, _) = servidor.accept().unwrap(); // espera o cliente conectar
+    let mut leitor = BufReader::new(conexao);
 
-    let mut mensagem = String::new(); //cria uma string para guardar os dados recebidos
+    let mut mensagem = String::new(); // cria uma string para guardar os dados recebidos
 
     // Recebe a mensagem
     leitor.read_line(&mut mensagem).unwrap();
@@ -198,27 +174,34 @@ fn main() {
 ```
 > Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex03_servidor.rs"
 
-__Cliente:__
+__Cliente (socket TCP):__
 ```rust
 use std::io::Write;
 use std::net::TcpStream;
 
 fn main() {
-    // Conecta ao servidor
-    let mut conexao = TcpStream::connect("host.docker.internal:8080").unwrap(); //permite que o teste possa ser feito por um só computador
+    // Usa o endereço informado; por padrão, conecta ao servidor local.
+    let endereco = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "127.0.0.1:8080".to_string());
+    let mut conexao = TcpStream::connect(&endereco)
+        .unwrap_or_else(|erro| panic!("não foi possível conectar a {endereco}: {erro}"));
 
     let mensagem = "Olá do outro computador!\n";
 
     // Envia a mensagem
     conexao.write_all(mensagem.as_bytes()).unwrap();
-    //converte o texto em bytes e os envia pelo TCP
+    // Converte o texto em bytes e os envia pelo socket TCP.
 
     println!("Mensagem enviada!");
 }
 ```
 > Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex03_cliente.rs"
 
+Por padrão, o cliente usa `127.0.0.1:8080`, o endereço de loopback que aponta para o próprio computador. Para executar em containers separados no mesmo computador, o cliente deve receber `host.docker.internal:8080`. Para executar em computadores diferentes, deve receber o IP do computador servidor.
+
 #### EXECUÇÃO
+Os comandos abaixo devem ser executados na pasta `src/rust`. A imagem `atividade-rust` precisa estar disponível nos computadores que executarão os programas.
 __Comandos:__
 >docker build -t atividade-rust .
 
@@ -226,11 +209,15 @@ Ele cria/recria a imagem do programa
 
 >docker run --rm -p 8080:8080 atividade-rust ex03-servidor
 
-Ele executa o servidor
+Esse comando inicia o servidor. Deixe-o em execução em um terminal.
 
->docker run --rm atividade-rust ex03-cliente
+>docker run --rm atividade-rust ex03-cliente -- host.docker.internal:8080
 
-Ele executa o cliente
+Esse comando executa o cliente em um container no mesmo computador do servidor. Para informar o IP do servidor quando ele estiver em outro computador, use:
+
+>docker run --rm atividade-rust ex03-cliente -- 192.168.0.10:8080
+
+Substitua `192.168.0.10` pelo IP do computador servidor. Execute o cliente em outro terminal ou computador.
 
 __Saídas:__
 
@@ -255,7 +242,7 @@ O código antigo usava:
 read_to_string
 ```
 
-Ou seja, o servidor só terminava a leitura quando a conexão era encerrada. Durante o teste, o cliente mandava a mensagem mas ela nunca retornava para o servidor
+Ou seja, o servidor só terminava a leitura quando a conexão era encerrada. Durante o teste, o cliente mandava a mensagem, mas o servidor continuava esperando antes de exibi-la.
 
 <br>
 
@@ -264,7 +251,7 @@ A solução foi substituir essa parte do código por:
 ```rust
 read_line
 ```
-Que envia a resposta assim que encontra uma quebra de linha, tornando o programa funcional.
+Que conclui a leitura assim que encontra uma quebra de linha. O cliente envia essa quebra junto com a mensagem, tornando a comunicação funcional.
 
 ## Considerações finais
 

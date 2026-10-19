@@ -1,7 +1,14 @@
-use std::fs;
+use std::io::{self, BufRead};
 
 fn main() {
-    let mensagem = fs::read_to_string("mensagem.txt").unwrap();
+    let stdin = io::stdin();
+    let mut mensagem = String::new();
 
-    println!("Mensagem recebida: {}", mensagem);
+    // Lê uma linha enviada pelo primeiro processo pelo pipe.
+    stdin
+        .lock()
+        .read_line(&mut mensagem)
+        .expect("não foi possível receber a mensagem pelo pipe");
+
+    println!("entrada: {}", mensagem.trim_end());
 }
