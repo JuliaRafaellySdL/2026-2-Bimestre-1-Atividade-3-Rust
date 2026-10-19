@@ -16,3 +16,10 @@ fn main() {
 
     println!("Mensagem enviada!");
 }
+
+//docker-compose.yml
+//  Lista os computadores/máquinas
+//  A parte de versionamento deve ser omitida
+//  Docker compose -> containers como serviço
+//      Serviço cliente e serviço servidor
+//      yaml -> estrutura
