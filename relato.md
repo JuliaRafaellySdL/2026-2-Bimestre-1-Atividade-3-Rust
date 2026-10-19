@@ -137,7 +137,7 @@ O pipe (`|`) conecta a saída do primeiro processo à entrada do segundo. A opç
 
 __Saída:__
 
->entrada: Olá mundo
+![Saída](imagens/ex02.png)
 
 #### PROBLEMAS
 __1. Entrada padrão do container receptor:__
