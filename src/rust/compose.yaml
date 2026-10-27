@@ -1,0 +1,11 @@
+services:
+  consumidor:
+    image: atividade-rust
+    build: .
+    command: ["ex03-servidor"]
+
+  produtor:
+    image: atividade-rust
+    command: ["ex03-cliente", "--", "consumidor:8080"]
+    depends_on:
+      - consumidor

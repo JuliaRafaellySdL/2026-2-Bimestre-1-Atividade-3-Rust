@@ -98,7 +98,7 @@ Dividido em dois programas, onde o primeiro envia uma mensagem para o segundo
 __Primeiro programa:__ Enviar mensagem pelo pipe
 ```rust
 fn main() {
-    println!("Olá mundo");
+    println!("Olá do outro processo!");
 }
 ```
 > Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex02_primeiro.rs"
@@ -137,7 +137,9 @@ O pipe (`|`) conecta a saída do primeiro processo à entrada do segundo. A opç
 
 __Saída:__
 
-![Saída](imagens/ex02.png)
+```text
+entrada: Olá do outro processo!
+```
 
 #### PROBLEMAS
 __1. Entrada padrão do container receptor:__
@@ -148,110 +150,152 @@ O segundo container precisa receber a saída do primeiro pela entrada padrão. A
 
 #### CÓDIGO
 
+O produtor envia uma lista de números por um socket TCP. O consumidor recebe os dados pelo socket e calcula a soma. O Docker Compose inicia os dois programas em containers separados, ligados pela rede interna do Compose.
 
-__Servidor (socket TCP):__
+__Consumidor (servidor TCP):__
 ```rust
 use std::io::{BufRead, BufReader};
-use std::net::TcpListener; // importa o socket TCP que aguarda conexões
+use std::net::TcpListener;
 
 fn main() {
-    // Abre a porta 8080
-    let servidor = TcpListener::bind("0.0.0.0:8080").unwrap(); // abre uma porta para conexões recebidas
+    // Cria um socket TCP e escuta conexões na porta 8080.
+    let servidor = TcpListener::bind("0.0.0.0:8080").unwrap();
 
     println!("Servidor esperando conexão...");
 
-    // Espera um computador se conectar
-    let (conexao, _) = servidor.accept().unwrap(); // espera o cliente conectar
+    // Aceita a conexão TCP do produtor.
+    let (conexao, _) = servidor.accept().unwrap();
     let mut leitor = BufReader::new(conexao);
 
-    let mut mensagem = String::new(); // cria uma string para guardar os dados recebidos
+    let mut mensagem = String::new();
 
-    // Recebe a mensagem
+    // Recebe os dados enviados pelo produtor.
     leitor.read_line(&mut mensagem).unwrap();
 
-    println!("Mensagem recebida: {}", mensagem.trim_end());
+    let dados: Vec<u32> = mensagem
+        .trim()
+        .split(',')
+        .map(|valor| valor.parse().expect("dado recebido não é um número válido"))
+        .collect();
+    let soma: u32 = dados.iter().sum();
+
+    println!("Dados recebidos: {dados:?}");
+    println!("Soma calculada: {soma}");
 }
 ```
 > Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex03_servidor.rs"
 
-__Cliente (socket TCP):__
+__Produtor (cliente TCP):__
 ```rust
 use std::io::Write;
 use std::net::TcpStream;
+use std::thread;
+use std::time::Duration;
 
 fn main() {
-    // Usa o endereço informado; por padrão, conecta ao servidor local.
+    // No Docker Compose, o nome do serviço consumidor funciona como endereço.
     let endereco = std::env::args()
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:8080".to_string());
-    let mut conexao = TcpStream::connect(&endereco)
-        .unwrap_or_else(|erro| panic!("não foi possível conectar a {endereco}: {erro}"));
 
-    let mensagem = "Olá do outro computador!\n";
+    // Aguarda o consumidor ficar pronto antes de abandonar a conexão.
+    let mut tentativas = 0;
+    let mut conexao = loop {
+        match TcpStream::connect(&endereco) {
+            Ok(conexao) => break conexao,
+            Err(_) if tentativas < 20 => {
+                tentativas += 1;
+                thread::sleep(Duration::from_millis(250));
+            }
+            Err(erro) => panic!("não foi possível conectar a {endereco}: {erro}"),
+        }
+    };
 
-    // Envia a mensagem
-    conexao.write_all(mensagem.as_bytes()).unwrap();
-    // Converte o texto em bytes e os envia pelo socket TCP.
+    let dados = [10, 20, 30];
+    let mensagem = dados
+        .iter()
+        .map(|valor| valor.to_string())
+        .collect::<Vec<_>>()
+        .join(",");
 
-    println!("Mensagem enviada!");
+    // Envia os dados pelo socket TCP, terminando a mensagem com uma quebra de linha.
+    conexao
+        .write_all(format!("{mensagem}\n").as_bytes())
+        .expect("não foi possível enviar os dados");
+
+    println!("Dados enviados: {mensagem}");
 }
 ```
 > Disponível em: 2026-2-Bimestre-1-Atividade-3-Rust -> src -> rust -> bin -> "ex03_cliente.rs"
 
-Por padrão, o cliente usa `127.0.0.1:8080`, o endereço de loopback que aponta para o próprio computador. Para executar em containers separados no mesmo computador, o cliente deve receber `host.docker.internal:8080`. Para executar em computadores diferentes, deve receber o IP do computador servidor.
+O Compose cria uma rede para os containers, e o produtor encontra o consumidor pelo nome do serviço `consumidor`. Esse teste usa dois containers no mesmo computador. Para executar em computadores diferentes, informe ao produtor o IP do computador onde o consumidor está rodando.
+
+__Configuração do Docker Compose (`compose.yaml`):__
+
+```yaml
+services:
+  consumidor:
+    image: atividade-rust
+    build: .
+    command: ["ex03-servidor"]
+
+  produtor:
+    image: atividade-rust
+    command: ["ex03-cliente", "--", "consumidor:8080"]
+    depends_on:
+      - consumidor
+```
 
 #### EXECUÇÃO
-Os comandos abaixo devem ser executados na pasta `src/rust`. A imagem `atividade-rust` precisa estar disponível nos computadores que executarão os programas.
+Os comandos abaixo devem ser executados na pasta `src/rust`.
 __Comandos:__
->docker build -t atividade-rust .
 
-Ele cria/recria a imagem do programa
+```powershell
+docker compose up --build
+```
 
->docker run --rm -p 8080:8080 atividade-rust ex03-servidor
+Esse comando constrói a imagem e inicia o consumidor e o produtor. O Compose inicia primeiro o consumidor; o produtor tenta se conectar até que o socket esteja pronto.
 
-Esse comando inicia o servidor. Deixe-o em execução em um terminal.
+Configuração em `compose.yaml`:
 
->docker run --rm atividade-rust ex03-cliente -- host.docker.internal:8080
+```yaml
+services:
+  consumidor:
+    image: atividade-rust
+    build: .
+    command: ["ex03-servidor"]
 
-Esse comando executa o cliente em um container no mesmo computador do servidor. Para informar o IP do servidor quando ele estiver em outro computador, use:
+  produtor:
+    image: atividade-rust
+    command: ["ex03-cliente", "--", "consumidor:8080"]
+    depends_on:
+      - consumidor
+```
 
->docker run --rm atividade-rust ex03-cliente -- 192.168.0.10:8080
+Para encerrar e remover os containers e a rede criada pelo Compose, use:
 
-Substitua `192.168.0.10` pelo IP do computador servidor. Execute o cliente em outro terminal ou computador.
+```powershell
+docker compose down
+```
 
 __Saídas:__
 
-__1.Servidor:__
+__Consumidor:__
 
 >Servidor esperando conexão...
 
->Mensagem recebida: Olá do outro computador!
+>Dados recebidos: [10, 20, 30]
 
-__2.Cliente:__
+>Soma calculada: 60
 
->Mensagem enviada!
+__Produtor:__
 
-![Saída](imagens/ex03_cliente-servidor.png)
+>Dados enviados: 10,20,30
 
 #### PROBLEMAS
-__1. Resposta nunca enviada__
+__1. Inicialização dos containers:__
 
-O código antigo usava:
-
-```rust
-read_to_string
-```
-
-Ou seja, o servidor só terminava a leitura quando a conexão era encerrada. Durante o teste, o cliente mandava a mensagem, mas o servidor continuava esperando antes de exibi-la.
-
-<br>
-
-A solução foi substituir essa parte do código por:
-
-```rust
-read_line
-```
-Que conclui a leitura assim que encontra uma quebra de linha. O cliente envia essa quebra junto com a mensagem, tornando a comunicação funcional.
+O produtor pode iniciar antes de o consumidor estar pronto para aceitar conexões. Para resolver esse problema, o produtor tenta se conectar novamente por alguns segundos antes de exibir um erro.
 
 ## Considerações finais
 

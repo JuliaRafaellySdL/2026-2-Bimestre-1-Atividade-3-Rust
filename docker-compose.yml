@@ -1,9 +1,0 @@
-services:
-
-  consumidor:
-    build: .
-    depends_on:
-      - produtor
-
-  produtor:
-    build: .
