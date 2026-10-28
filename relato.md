@@ -87,8 +87,6 @@ __Saída:__
 ![Saída do programa](imagens/ex01_saida.png)
 
 ##### PROBLEMAS
-__1. Docker fechado:__
-Durante a execução do código o docker precisa estar aberto
 
 ### Comunicação entre tarefas em processos diferentes no mesmo computador
 
@@ -137,9 +135,7 @@ O pipe (`|`) conecta a saída do primeiro processo à entrada do segundo. A opç
 
 __Saída:__
 
-```text
-entrada: Olá do outro processo!
-```
+![Saída do programa](imagens/ex02.png)
 
 #### PROBLEMAS
 __1. Entrada padrão do container receptor:__
@@ -280,17 +276,7 @@ docker compose down
 
 __Saídas:__
 
-__Consumidor:__
-
->Servidor esperando conexão...
-
->Dados recebidos: [10, 20, 30]
-
->Soma calculada: 60
-
-__Produtor:__
-
->Dados enviados: 10,20,30
+![Saída do programa](imagens/ex03.png)
 
 #### PROBLEMAS
 __1. Inicialização dos containers:__
