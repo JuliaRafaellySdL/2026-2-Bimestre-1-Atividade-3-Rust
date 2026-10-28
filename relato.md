@@ -168,11 +168,13 @@ fn main() {
     // Recebe os dados enviados pelo produtor.
     leitor.read_line(&mut mensagem).unwrap();
 
+    //Transforma o texto em números
     let dados: Vec<u32> = mensagem
         .trim()
         .split(',')
         .map(|valor| valor.parse().expect("dado recebido não é um número válido"))
         .collect();
+
     let soma: u32 = dados.iter().sum();
 
     println!("Dados recebidos: {dados:?}");
@@ -191,6 +193,7 @@ use std::time::Duration;
 fn main() {
     // No Docker Compose, o nome do serviço consumidor funciona como endereço.
     let endereco = std::env::args()
+
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:8080".to_string());
 
@@ -251,22 +254,6 @@ docker compose up --build
 ```
 
 Esse comando constrói a imagem e inicia o consumidor e o produtor. O Compose inicia primeiro o consumidor; o produtor tenta se conectar até que o socket esteja pronto.
-
-Configuração em `compose.yaml`:
-
-```yaml
-services:
-  consumidor:
-    image: atividade-rust
-    build: .
-    command: ["ex03-servidor"]
-
-  produtor:
-    image: atividade-rust
-    command: ["ex03-cliente", "--", "consumidor:8080"]
-    depends_on:
-      - consumidor
-```
 
 Para encerrar e remover os containers e a rede criada pelo Compose, use:
 
