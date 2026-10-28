@@ -290,4 +290,4 @@ Conseguimos implementar e executar tudo com sucesso, adquirindo ensinamentos pri
 
 <br>
 
-Obs: Vídeos das execuções --> [Vídeos](https://www.youtube.com/watch?v=AXVFdxmfjFw&list=PLLiwkXM5Re5I&index=1)
+Obs: Vídeos das execuções --> [Vídeos](https://youtube.com/playlist?list=PLLiwkXM5Re5I&si=jYbhzij1T_jB8b5E)
